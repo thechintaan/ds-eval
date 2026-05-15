@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DS Health Check</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #ffffff;
+      --bg-secondary: #f7f7f5;
+      --bg-tertiary: #f0efeb;
+      --text-primary: #1a1a1a;
+      --text-secondary: #6b6b6b;
+      --text-tertiary: #9a9a9a;
+      --border: rgba(0,0,0,0.1);
+      --radius-md: 8px;
+      --radius-lg: 12px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1a1a1a; --bg-secondary: #252525; --bg-tertiary: #2e2e2e;
+        --text-primary: #f0f0ee; --text-secondary: #9a9a9a; --text-tertiary: #666;
+        --border: rgba(255,255,255,0.1);
+      }
+    }
+
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg-tertiary); color: var(--text-primary); min-height: 100vh; padding: 2rem 1rem; }
+    .page { max-width: 760px; margin: 0 auto; }
+
+    .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: var(--radius-md); border: 0.5px solid var(--border); color: var(--text-secondary); background: var(--bg-secondary); margin-right: 5px; margin-bottom: 8px; }
+    .badge-pattern { background: #E6F1FB; color: #185FA5; border-color: #B5D4F4; }
+
+    .score-row { display: flex; align-items: center; gap: 1.5rem; padding: 1.25rem 1.5rem; background: var(--bg); border-radius: var(--radius-lg); border: 0.5px solid var(--border); margin-bottom: 1.5rem; }
+    .snum { font-size: 44px; font-weight: 500; line-height: 1; }
+    .sbar { height: 6px; background: var(--bg-secondary); border-radius: 3px; border: 0.5px solid var(--border); overflow: hidden; margin: 6px 0; }
+    .sbar-fill { height: 100%; background: #185FA5; border-radius: 3px; }
+    .smeta { font-size: 12px; color: var(--text-secondary); }
+
+    .sec-label { font-size: 11px; font-weight: 500; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: .06em; margin: 1.5rem 0 .5rem; }
+
+    .acc { border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: .5rem; background: var(--bg); }
+    .acc-head { display: flex; align-items: center; gap: 10px; padding: .875rem 1rem; cursor: pointer; user-select: none; transition: background .15s; }
+    .acc-head:hover { background: var(--bg-secondary); }
+    .chev { font-size: 14px; color: var(--text-tertiary); transition: transform .2s; flex-shrink: 0; }
+    .chev.open { transform: rotate(90deg); }
+    .acc-title { flex: 1; }
+    .acc-name { font-size: 14px; font-weight: 500; }
+    .acc-sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+    .acc-body { display: none; border-top: 0.5px solid var(--border); padding: .875rem 1rem; }
+    .acc-body.open { display: block; }
+
+    .tag { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 3px 8px; border-radius: var(--radius-md); border: 0.5px solid; white-space: nowrap; }
+    .tag-ok   { background: #EAF3DE; color: #3B6D11; border-color: #C0DD97; }
+    .tag-warn { background: #FAEEDA; color: #854F0B; border-color: #FAC775; }
+    .tag-fail { background: #FCEBEB; color: #A32D2D; border-color: #F7C1C1; }
+
+    .group-label { font-size: 11px; font-weight: 500; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: .05em; margin: .75rem 0 .35rem; }
+    .group-label:first-child { margin-top: 0; }
+
+    .chip-group { display: flex; flex-wrap: wrap; gap: 5px; }
+    .chip { font-size: 11px; padding: 2px 8px; border-radius: var(--radius-md); background: var(--bg-secondary); border: 0.5px solid var(--border); color: var(--text-secondary); }
+    .chip-ok   { background: #EAF3DE; border-color: #C0DD97; color: #3B6D11; }
+    .chip-warn { background: #FAEEDA; border-color: #FAC775; color: #854F0B; }
+    .chip-fail { background: #FCEBEB; border-color: #F7C1C1; color: #A32D2D; }
+    .chip-dim  { opacity: .55; }
+
+    .item-list { display: flex; flex-direction: column; gap: 4px; }
+    .item-row  { display: flex; align-items: flex-start; gap: 7px; font-size: 12px; color: var(--text-secondary); padding: 2px 0; line-height: 1.5; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+    .dot-ok   { background: #639922; }
+    .dot-warn { background: #BA7517; }
+    .dot-fail { background: #A32D2D; }
+
+    .verdict-box { background: var(--bg); border-radius: var(--radius-lg); border: 0.5px solid var(--border); padding: 1.25rem 1.5rem; }
+    .vt { font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+    .vp { font-size: 13px; color: var(--text-secondary); line-height: 1.65; }
+    .gap-list { margin-top: .875rem; display: flex; flex-direction: column; gap: 7px; }
+    .gap-r { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--text-secondary); }
+    .gn { width: 18px; height: 18px; border-radius: 50%; background: #FAECE7; color: #993C1D; font-size: 10px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+
+    .foot { font-size: 11px; color: var(--text-tertiary); margin-top: 2rem; display: flex; gap: .75rem; padding-bottom: 2rem; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+<div class="page" id="root"></div>
+
+<script>
+/* ─────────────────────────────────────────────
+   DATA — swap this object for each DS evaluated
+   ───────────────────────────────────────────── */
+const DS = {
+  name: "Untitled UI PRO VARIABLES v6.0",
+  source: "Untitled UI · PRO VARIABLES file (partial copy, 11 pages)",
+  readDate: "May 2026",
+  pattern: "B — primitive + semantic (three-tier)",
+  type: "PRO Kit",
+  score: 72,
+  maturity: "Solid foundation",
+  summary: "7 collections · 850 variables · Light + Dark modes · Three-tier colour system",
+
+  dimensions: [
+    { label: "Token architecture", score: 28, max: 30 },
+    { label: "Naming convention",  score: 17, max: 20 },
+    { label: "Mode support",       score: 10, max: 20 },
+    { label: "Component coverage", score: 14, max: 20 },
+    { label: "Documentation",      score: 3,  max: 10 }
+  ],
+
+  sections: [
+    {
+      group: "Token architecture — 28/30",
+      items: [
+        {
+          name: "Variable collections",
+          sub: "7 collections · 850 total variables",
+          status: "ok",
+          body: [
+            { label: "Collections",
+              chips: [
+                {label:"_Primitives · 407 vars · 1 mode",s:"dim"},
+                {label:"1. Color modes · 368 vars · Light + Dark",s:"ok"},
+                {label:"2. Radius · 11 vars",s:"ok"},
+                {label:"3. Spacing · 17 vars",s:"ok"},
+                {label:"4. Widths · 12 vars",s:"ok"},
+                {label:"5. Containers · 3 vars",s:"ok"},
+                {label:"6. Typography · 32 vars",s:"ok"}
+              ]
+            }
+          ]
+        },
+        {
+          name: "Three-tier colour system",
+          sub: "Primitives → Semantic roles → Component-specific tokens",
+          status: "ok",
+          body: [
+            { rows: [
+              {s:"ok", text:"Tier 1 — _Primitives (407 vars): raw colour ramps (Gray/25–950, Brand/25–900, Error, Warning, Success). Single mode."},
+              {s:"ok", text:"Tier 2a — Semantic roles (Colors/Text, Colors/Border, Colors/Background, Colors/Foreground, Colors/Alpha, Colors/Effects): all properly aliasing primitives, not raw values."},
+              {s:"ok", text:"Tier 2b — Component tokens (Component colors/Utility, Component colors/Components): 242 tokens pre-resolved for specific components (Avatars, Breadcrumbs, Avatars, App store badges, Navigation). Designers pick component-specific tokens without going back to primitives."}
+            ]},
+            { label: "Semantic tier sample",
+              chips: [
+                {label:"Colors/Text/text-primary (900)",s:"ok"},
+                {label:"Colors/Text/text-secondary (700)",s:"ok"},
+                {label:"Colors/Border/border-brand",s:"ok"},
+                {label:"Colors/Background/bg-primary",s:"ok"},
+                {label:"Colors/Effects/Focus rings/focus-ring",s:"ok"},
+                {label:"Colors/Effects/Shadows/shadow-xs",s:"ok"}
+              ]
+            }
+          ]
+        },
+        {
+          name: "Dimension tokens — Spacing, Radius, Typography",
+          sub: "17 + 11 + 32 variables · all correctly scoped",
+          status: "ok",
+          body: [
+            { label: "Spacing (17) — GAP scope",
+              chips: [
+                {label:"spacing-none",s:"ok"},{label:"spacing-xxs",s:"ok"},{label:"spacing-xs",s:"ok"},
+                {label:"spacing-sm",s:"ok"},{label:"spacing-md",s:"ok"},{label:"spacing-lg",s:"ok"},
+                {label:"spacing-xl",s:"ok"},{label:"spacing-2xl",s:"ok"},{label:"spacing-3xl",s:"ok"},
+                {label:"spacing-4xl",s:"ok"},{label:"spacing-5xl",s:"ok"},{label:"spacing-6xl",s:"ok"},
+                {label:"spacing-7xl",s:"ok"},{label:"spacing-8xl",s:"ok"},{label:"spacing-9xl",s:"ok"},
+                {label:"spacing-10xl",s:"ok"},{label:"spacing-11xl",s:"ok"}
+              ]
+            },
+            { label: "Radius (11) — CORNER_RADIUS scope",
+              chips: [
+                {label:"radius-none",s:"ok"},{label:"radius-xxs",s:"ok"},{label:"radius-xs",s:"ok"},
+                {label:"radius-sm",s:"ok"},{label:"radius-md",s:"ok"},{label:"radius-lg",s:"ok"},
+                {label:"radius-xl",s:"ok"},{label:"radius-2xl",s:"ok"},{label:"radius-3xl",s:"ok"},
+                {label:"radius-4xl",s:"ok"},{label:"radius-full",s:"ok"}
+              ]
+            },
+            { label: "Typography (32) — Font family, Font style, Font size, Line height scopes",
+              chips: [
+                {label:"font-family-display",s:"ok"},{label:"font-family-body",s:"ok"},
+                {label:"Font weight/regular → bold (+ italic variants)",s:"ok"},
+                {label:"Font size/text-xs → display-2xl",s:"ok"},
+                {label:"Line height/text-xs → display-2xl",s:"ok"}
+              ]
+            }
+          ]
+        },
+        {
+          name: "Token scopes",
+          sub: "Semantic layer ✅ — Primitives ⚠️ ALL_SCOPES",
+          status: "warn",
+          statusLabel: "Minor issue",
+          body: [
+            { rows: [
+              {s:"ok",  text:"Semantic text tokens → TEXT_FILL only. Border tokens → STROKE_COLOR only. Effect tokens → EFFECT_COLOR only. Spacing → GAP. Radius → CORNER_RADIUS. Typography → correct font property scopes."},
+              {s:"warn", text:"Primitives collection uses ALL_SCOPES. This means designers can accidentally apply a raw value (Colors/Gray (light mode)/500) directly instead of using a semantic token. Minor issue in practice — the semantic layer is the intended entry point."}
+            ]}
+          ]
+        }
+      ]
+    },
+    {
+      group: "Naming convention — 17/20",
+      items: [
+        {
+          name: "Colour naming — slash hierarchy with role clarity",
+          sub: "Consistent within colour system · helpful primitive hints",
+          status: "ok",
+          body: [
+            { rows: [
+              {s:"ok", text:"Semantic tokens are role-named, not value-named: text-primary, border-brand, bg-primary. Hierarchy is immediately readable from the name."},
+              {s:"ok", text:"Parenthetical primitive hints on semantic tokens: Colors/Text/text-primary (900) tells the designer which primitive step is being aliased without leaving the variable picker. Recommended pattern — no other DS we read does this."},
+              {s:"ok", text:"Interaction state variants are name-suffixed: text-secondary_hover, text-tertiary_hover — clear and discoverable."}
+            ]}
+          ]
+        },
+        {
+          name: "Dimension naming — flat kebab",
+          sub: "spacing-md, radius-xl — different convention from colour system",
+          status: "warn",
+          statusLabel: "Mixed conventions",
+          body: [
+            { rows: [
+              {s:"warn", text:"Colour tokens use slash hierarchy (Colors/Text/text-primary). Dimension tokens use flat kebab (spacing-md, radius-xl). Two conventions coexist across the file."},
+              {s:"ok",   text:"Within each category the convention is perfectly consistent. The mixing is across categories, not within."},
+              {s:"ok",   text:"T-shirt + extended numeric scale: spacing-none, spacing-xxs through spacing-11xl. Clear progression, unambiguous names."}
+            ]}
+          ]
+        }
+      ]
+    },
+    {
+      group: "Mode support — 10/20",
+      items: [
+        {
+          name: "Light + Dark modes",
+          sub: "1. Color modes collection · 368 variables across 2 modes",
+          status: "ok",
+          body: [
+            { rows: [
+              {s:"ok",  text:"Light mode and Dark mode on the semantic collection. All 368 semantic tokens respond to mode switching."},
+              {s:"ok",  text:"Primitives are correctly single-mode — values don't change between light and dark."},
+              {s:"ok",  text:"Dimension tokens (spacing, radius, typography) are single-mode — correct."}
+            ]}
+          ]
+        },
+        {
+          name: "Brand themes / additional modes",
+          sub: "Not included",
+          status: "fail",
+          body: [
+            { rows: [
+              {s:"fail", text:"Light + Dark is the full mode scope for Untitled UI. No brand color themes, no density modes, no contrast modes."},
+              {s:"warn",  text:"This is an intentional design choice — Untitled UI leaves brand theming to the teams consuming the kit. Teams using it as a foundation would need to add their own brand theme layer on top."}
+            ]}
+          ]
+        }
+      ]
+    },
+    {
+      group: "Component coverage — 14/20",
+      items: [
+        {
+          name: "⚠️ Partial file caveat",
+          sub: "This is a trimmed copy — 11 pages vs. full Untitled UI PRO (100+ pages)",
+          status: "warn",
+          statusLabel: "Partial file",
+          body: [
+            { rows: [
+              {s:"warn", text:"The file URL says 'Copy' — this is a user's trimmed copy of Untitled UI PRO, not the full product. Component coverage score reflects what's in this file, not the full Untitled UI system."},
+              {s:"ok",   text:"The full Untitled UI PRO file would include Cards, Modals, Navigation, Tables, Dropdowns, Forms, Tabs, Alerts, Avatars, and many more — estimated component coverage score for the full file: ~19/20."}
+            ]}
+          ]
+        },
+        {
+          name: "Button — 380 variants",
+          sub: "5 sizes · 7 hierarchies · 4 states · icon options",
+          status: "ok",
+          body: [
+            { label: "Variant grid",
+              chips: [
+                {label:"Sizes: sm, md, lg, xl, 2xl",s:"ok"},
+                {label:"Primary",s:"ok"},{label:"Secondary gray",s:"ok"},{label:"Secondary color",s:"ok"},
+                {label:"Tertiary gray",s:"ok"},{label:"Tertiary color",s:"ok"},
+                {label:"Link gray",s:"ok"},{label:"Link color",s:"ok"},
+                {label:"States: Default / Hover / Focused / Disabled",s:"ok"},
+                {label:"Icon leading + trailing (boolean)",s:"ok"},
+                {label:"Icon leading swap (instance)",s:"ok"}
+              ]
+            },
+            { rows: [
+              {s:"ok", text:"Best button variant depth across all 4 DS reads. 5 × 7 × 4 grid covers every realistic design scenario."}
+            ]}
+          ]
+        },
+        {
+          name: "Badge — 954 variants · Input — 112 variants",
+          sub: "Badges, Inputs, Tooltips pages confirmed",
+          status: "ok",
+          body: [
+            { label: "Confirmed atoms",
+              chips: [
+                {label:"Button ✓ 380 variants",s:"ok"},
+                {label:"Input field ✓ 112 variants",s:"ok"},
+                {label:"Textarea ✓",s:"ok"},
+                {label:"Badge ✓ 954 variants",s:"ok"},
+                {label:"Tooltip ✓ 14 variants",s:"ok"},
+                {label:"Icon ✓ dedicated page",s:"ok"},
+                {label:"Avatar ✓ (from component tokens)",s:"ok"}
+              ]
+            },
+            { label: "Not in this file copy",
+              chips: [
+                {label:"Checkbox",s:"warn"},{label:"Radio",s:"warn"},
+                {label:"Toggle/Switch",s:"warn"},{label:"Divider",s:"warn"}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      group: "Documentation — 3/10",
+      items: [
+        {
+          name: "Component descriptions",
+          sub: "All checked components returned empty descriptions",
+          status: "fail",
+          body: [
+            { rows: [
+              {s:"fail", text:"Button description: empty. Badge description: empty. Input field description: empty. Tooltip description: empty. This pattern held across every component we checked."},
+              {s:"ok",   text:"Variant property names use emoji as visual indicators (⬅️ Icon leading, 🔀 Icon leading swap) — helpful UX in the properties panel but not documentation."},
+              {s:"warn",  text:"A 'Design annotations' page exists in the file — may contain usage guidelines, but not surfaced at the component level where designers need it."}
+            ]}
+          ]
+        }
+      ]
+    }
+  ],
+
+  verdict: {
+    title: "Excellent token architecture, limited docs and modes",
+    body: "Untitled UI PRO VARIABLES is the strongest token architecture we've read — a genuine three-tier system with proper aliasing, exemplary scoping, and a naming pattern (parenthetical primitive hints) no other DS we evaluated uses. The gaps are consistent with the industry: documentation is empty throughout, and the mode ceiling is Light + Dark only. If you're building on this as a foundation, plan to add your brand theme layer and write component descriptions from scratch.",
+    gaps: [
+      "Light + Dark only — no brand theme modes. Teams adopting this must build their own brand semantic layer on top.",
+      "Component descriptions empty across all components. Write a standard description template and fill it across the component library.",
+      "This file is a partial copy (11 pages). Acquire the full Untitled UI PRO file to get the complete component set before building on it.",
+      "Primitives use ALL_SCOPES — consider scoping them more restrictively so designers are guided toward the semantic layer."
+    ]
+  }
+};
+
+/* ─────────────────────────────────────────────
+   RENDERER — never needs to change
+   ───────────────────────────────────────────── */
+const statusTag = {
+  ok:   `<span class="tag tag-ok"><i class="ti ti-check"></i> Looks good</span>`,
+  warn: (label) => `<span class="tag tag-warn"><i class="ti ti-alert-triangle"></i> ${label || 'Needs work'}</span>`,
+  fail: `<span class="tag tag-fail"><i class="ti ti-x"></i> Missing</span>`
+};
+
+function chipHTML(c) {
+  const cls = c.s === 'ok' ? 'chip-ok' : c.s === 'warn' ? 'chip-warn' : c.s === 'fail' ? 'chip-fail' : c.s === 'dim' ? 'chip chip-dim' : '';
+  return `<span class="chip ${cls}">${c.label}</span>`;
+}
+
+function rowHTML(r) {
+  const dot = r.s === 'ok' ? 'dot-ok' : r.s === 'warn' ? 'dot-warn' : 'dot-fail';
+  return `<div class="item-row"><div class="dot ${dot}"></div><span>${r.text}</span></div>`;
+}
+
+function bodyBlockHTML(b) {
+  let out = '';
+  if (b.label) out += `<div class="group-label">${b.label}</div>`;
+  if (b.chips) out += `<div class="chip-group">${b.chips.map(chipHTML).join('')}</div>`;
+  if (b.rows)  out += `<div class="item-list">${b.rows.map(rowHTML).join('')}</div>`;
+  return out;
+}
+
+function accHTML(item) {
+  const tag = item.status === 'ok'   ? statusTag.ok
+            : item.status === 'fail' ? statusTag.fail
+            : statusTag.warn(item.statusLabel);
+  return `
+    <div class="acc">
+      <div class="acc-head" onclick="tog(this)">
+        <i class="ti ti-chevron-right chev" aria-hidden="true"></i>
+        <div class="acc-title">
+          <div class="acc-name">${item.name}</div>
+          <div class="acc-sub">${item.sub}</div>
+        </div>
+        ${tag}
+      </div>
+      <div class="acc-body">${item.body.map(bodyBlockHTML).join('')}</div>
+    </div>`;
+}
+
+function render() {
+  const pct = Math.round((DS.score / 100) * 100);
+  let html = `
+    <div style="margin-bottom:1.5rem">
+      <div style="margin-bottom:6px">
+        <span class="badge badge-pattern">Pattern ${DS.pattern}</span>
+        <span class="badge">${DS.type}</span>
+      </div>
+      <p style="font-size:22px;font-weight:500">${DS.name}</p>
+      <p style="font-size:13px;color:var(--text-secondary);margin-top:4px">${DS.source} · Read ${DS.readDate}</p>
+    </div>
+
+    <div class="score-row">
+      <div>
+        <div class="snum">${DS.score}</div>
+        <div class="smeta" style="margin-top:4px">out of 100</div>
+      </div>
+      <div style="flex:1">
+        <p style="font-size:14px;font-weight:500">${DS.maturity}</p>
+        <div class="sbar"><div class="sbar-fill" style="width:${pct}%"></div></div>
+        <p class="smeta">${DS.summary}</p>
+      </div>
+    </div>`;
+
+  DS.sections.forEach(sec => {
+    html += `<p class="sec-label">${sec.group}</p>`;
+    sec.items.forEach(item => { html += accHTML(item); });
+  });
+
+  html += `
+    <p class="sec-label">Verdict</p>
+    <div class="verdict-box">
+      <div class="vt">${DS.verdict.title}</div>
+      <div class="vp">${DS.verdict.body}</div>
+      <div class="gap-list">
+        ${DS.verdict.gaps.map((g,i) => `<div class="gap-r"><div class="gn">${i+1}</div>${g}</div>`).join('')}
+      </div>
+    </div>
+    <div class="foot">
+      <span>Read: ${DS.readDate}</span><span>·</span>
+      <span>Figma Plugin API</span><span>·</span>
+      <span>Rubric v1.2</span>
+    </div>`;
+
+  document.getElementById('root').innerHTML = html;
+}
+
+function tog(head) {
+  const chev = head.querySelector('.chev');
+  const body = head.nextElementSibling;
+  const open = body.classList.toggle('open');
+  chev.classList.toggle('open', open);
+}
+
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DS Health Check — Material Design 3</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #ffffff;
+      --bg-secondary: #f7f7f5;
+      --bg-tertiary: #f0efeb;
+      --text-primary: #1a1a1a;
+      --text-secondary: #6b6b6b;
+      --text-tertiary: #9a9a9a;
+      --border: rgba(0,0,0,0.1);
+      --border-md: rgba(0,0,0,0.18);
+      --radius-md: 8px;
+      --radius-lg: 12px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1a1a1a;
+        --bg-secondary: #252525;
+        --bg-tertiary: #2e2e2e;
+        --text-primary: #f0f0ee;
+        --text-secondary: #9a9a9a;
+        --text-tertiary: #666666;
+        --border: rgba(255,255,255,0.1);
+        --border-md: rgba(255,255,255,0.18);
+      }
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    .page {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .hd { margin-bottom: 1.5rem; }
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: var(--radius-md);
+      border: 0.5px solid var(--border);
+      color: var(--text-secondary);
+      background: var(--bg-secondary);
+      margin-right: 5px;
+      margin-bottom: 8px;
+    }
+    .badge-a { background: #E6F1FB; color: #185FA5; border-color: #B5D4F4; }
+
+    /* Score hero */
+    .score-row {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      padding: 1.25rem 1.5rem;
+      background: var(--bg);
+      border-radius: var(--radius-lg);
+      border: 0.5px solid var(--border);
+      margin-bottom: 1.5rem;
+    }
+    .snum { font-size: 44px; font-weight: 500; line-height: 1; }
+    .sbar-wrap { flex: 1; }
+    .sbar {
+      height: 6px;
+      background: var(--bg-secondary);
+      border-radius: 3px;
+      border: 0.5px solid var(--border);
+      overflow: hidden;
+      margin: 6px 0;
+    }
+    .sbar-fill { height: 100%; width: 89%; background: #185FA5; border-radius: 3px; }
+    .smeta { font-size: 12px; color: var(--text-secondary); }
+
+    /* Section labels */
+    .sec-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin: 1.5rem 0 .5rem;
+    }
+
+    /* Accordion */
+    .acc {
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-bottom: .5rem;
+      background: var(--bg);
+    }
+    .acc-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: .875rem 1rem;
+      cursor: pointer;
+      user-select: none;
+      transition: background .15s;
+    }
+    .acc-head:hover { background: var(--bg-secondary); }
+    .chev {
+      font-size: 14px;
+      color: var(--text-tertiary);
+      transition: transform .2s;
+      flex-shrink: 0;
+    }
+    .chev.open { transform: rotate(90deg); }
+    .acc-title { flex: 1; }
+    .acc-name { font-size: 14px; font-weight: 500; }
+    .acc-sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+
+    /* Tags */
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: var(--radius-md);
+      border: 0.5px solid;
+      white-space: nowrap;
+    }
+    .tag-ok  { background: #EAF3DE; color: #3B6D11; border-color: #C0DD97; }
+    .tag-warn{ background: #FAEEDA; color: #854F0B; border-color: #FAC775; }
+    .tag-fail{ background: #FCEBEB; color: #A32D2D; border-color: #F7C1C1; }
+
+    /* Accordion body */
+    .acc-body {
+      display: none;
+      border-top: 0.5px solid var(--border);
+      padding: .875rem 1rem;
+    }
+    .acc-body.open { display: block; }
+
+    /* Group labels inside body */
+    .group-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      margin: .75rem 0 .35rem;
+    }
+    .group-label:first-child { margin-top: 0; }
+
+    /* Chips */
+    .chip-group { display: flex; flex-wrap: wrap; gap: 5px; }
+    .chip {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: var(--radius-md);
+      background: var(--bg-secondary);
+      border: 0.5px solid var(--border);
+      color: var(--text-secondary);
+    }
+    .chip-ok   { background: #EAF3DE; border-color: #C0DD97; color: #3B6D11; }
+    .chip-warn { background: #FAEEDA; border-color: #FAC775; color: #854F0B; }
+    .chip-fail { background: #FCEBEB; border-color: #F7C1C1; color: #A32D2D; }
+    .chip-dim  { opacity: .55; }
+
+    /* Item rows */
+    .item-list { display: flex; flex-direction: column; gap: 4px; }
+    .item-row  { display: flex; align-items: flex-start; gap: 7px; font-size: 12px; color: var(--text-secondary); padding: 2px 0; line-height: 1.5; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+    .dot-ok   { background: #639922; }
+    .dot-warn { background: #BA7517; }
+    .dot-fail { background: #A32D2D; }
+
+    /* Verdict */
+    .verdict-box {
+      background: var(--bg);
+      border-radius: var(--radius-lg);
+      border: 0.5px solid var(--border);
+      padding: 1.25rem 1.5rem;
+    }
+    .vt { font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+    .vp { font-size: 13px; color: var(--text-secondary); line-height: 1.65; }
+    .gap-list { margin-top: .875rem; display: flex; flex-direction: column; gap: 7px; }
+    .gap-r { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--text-secondary); }
+    .gn {
+      width: 18px; height: 18px; border-radius: 50%;
+      background: #FAECE7; color: #993C1D;
+      font-size: 10px; font-weight: 500;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 1px;
+    }
+
+    /* Footer */
+    .foot {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      margin-top: 2rem;
+      display: flex;
+      gap: .75rem;
+      padding-bottom: 2rem;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <div class="hd">
+    <div style="margin-bottom:6px">
+      <span class="badge badge-a">Pattern A — role-based</span>
+      <span class="badge">Community</span>
+    </div>
+    <p style="font-size:22px;font-weight:500">Material Design 3</p>
+    <p style="font-size:13px;color:var(--text-secondary);margin-top:4px">Google · Material 3 Design Kit · Read May 2026</p>
+  </div>
+
+  <div class="score-row">
+    <div>
+      <div class="snum">89</div>
+      <div class="smeta" style="margin-top:4px">out of 100</div>
+    </div>
+    <div class="sbar-wrap">
+      <p style="font-size:14px;font-weight:500">Production-ready</p>
+      <div class="sbar"><div class="sbar-fill"></div></div>
+      <p class="smeta">4 collections · 304 variables · 32 modes · 25 component pages</p>
+    </div>
+  </div>
+
+  <!-- Token Architecture -->
+  <p class="sec-label">Token architecture — 25/30</p>
+
+  <div class="acc">
+    <div class="acc-head" onclick="tog(this)">
+      <i class="ti ti-chevron-right chev" aria-hidden="true"></i>
+      <div class="acc-title">
+        <div class="acc-name">M3 — colour &amp; state layers</div>
+        <div class="acc-sub">197 variables · 32 modes</div>
+      </div>
+      <span class="tag tag-ok"><i class="ti ti-check"></i> Looks good</span>
+    </div>
+    <div class="acc-body">
+      <div class="group-label">Colour schemes (49)</div>
+      <div class="chip-group">
+        <span class="chip chip-ok">Schemes/Primary</span><span class="chip chip-ok">Schemes/On Primary</span><span class="chip chip-ok">Schemes/Primary Container</span><span class="chip chip-ok">Schemes/On Primary Container</span><span class="chip chip-ok">Schemes/Secondary</span><span class="chip chip-ok">Schemes/On Secondary</span><span class="chip chip-ok">Schemes/Secondary Container</span><span class="chip chip-ok">Schemes/On Secondary Container</span><span class="chip chip-ok">Schemes/Tertiary</span><span class="chip chip-ok">Schemes/On Tertiary</span><span class="chip chip-ok">Schemes/Tertiary Container</span><span class="chip chip-ok">Schemes/On Tertiary Container</span><span class="chip chip-ok">Schemes/Error</span><span class="chip chip-ok">Schemes/On Error</span><span class="chip chip-ok">Schemes/Error Container</span><span class="chip chip-ok">Schemes/On Error Container</span><span class="chip chip-ok">Schemes/Background</span><span class="chip chip-ok">Schemes/On Background</span><span class="chip chip-ok">Schemes/Surface</span><span class="chip chip-ok">Schemes/On Surface</span><span class="chip chip-ok">Schemes/Surface Variant</span><span class="chip chip-ok">Schemes/On Surface Variant</span><span class="chip chip-ok">Schemes/Outline</span><span class="chip chip-ok">Schemes/Outline Variant</span><span class="chip chip-ok">Schemes/Surface Tint</span><span class="chip chip-ok">Schemes/Shadow</span><span class="chip chip-ok">Schemes/Scrim</span><span class="chip chip-ok">Schemes/Inverse Surface</span><span class="chip chip-ok">Schemes/Inverse On Surface</span><span class="chip chip-ok">Schemes/Inverse Primary</span><span class="chip chip-ok">Schemes/Primary Fixed</span><span class="chip chip-ok">Schemes/On Primary Fixed</span><span class="chip chip-ok">Schemes/Primary Fixed Dim</span><span class="chip chip-ok">Schemes/Surface Dim</span><span class="chip chip-ok">Schemes/Surface Bright</span><span class="chip chip-ok">Schemes/Surface Container Lowest</span><span class="chip chip-ok">Schemes/Surface Container Low</span><span class="chip chip-ok">Schemes/Surface Container</span><span class="chip chip-ok">Schemes/Surface Container High</span><span class="chip chip-ok">Schemes/Surface Container Highest</span>
+      </div>
+      <div class="group-label">State layers (148) — pattern</div>
+      <div class="chip-group">
+        <span class="chip">State Layers/Primary/Opacity-08</span><span class="chip">State Layers/Primary/Opacity-10</span><span class="chip">State Layers/Primary/Opacity-16</span><span class="chip">State Layers/On Primary/Opacity-08</span><span class="chip">State Layers/Surface/Opacity-08</span><span class="chip">State Layers/Error/Opacity-08</span><span class="chip">State Layers/Outline/Opacity-08</span><span class="chip chip-dim">+ 141 more at same pattern</span>
+      </div>
+      <div class="group-label">Modes (32)</div>
+      <div class="chip-group">
+        <span class="chip chip-ok">Light</span><span class="chip chip-ok">Dark</span><span class="chip chip-ok">Light High Contrast</span><span class="chip chip-ok">Light Medium Contrast</span><span class="chip chip-ok">Dark High Contrast</span><span class="chip chip-ok">Dark Medium Contrast</span><span class="chip chip-ok">Monochrome LT</span><span class="chip chip-ok">Monochrome DT</span><span class="chip chip-ok">Pink LT/DT</span><span class="chip chip-ok">Rose LT/DT</span><span class="chip chip-ok">Red LT/DT</span><span class="chip chip-ok">Orange LT/DT</span><span class="chip chip-ok">Yellow LT/DT</span><span class="chip chip-ok">Chartreuse LT/DT</span><span class="chip chip-ok">Green LT/DT</span><span class="chip chip-ok">Teal LT/DT</span><span class="chip chip-ok">Cyan LT/DT</span><span class="chip chip-ok">Blue LT/DT</span><span class="chip chip-ok">Indigo LT/DT</span><span class="chip chip-ok">Purple LT/DT</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="acc">
+    <div class="acc-head" onclick="tog(this)">
+      <i class="ti ti-chevron-right chev" aria-hidden="true"></i>
+      <div class="acc-title">
+        <div class="acc-name">Typescale</div>
+        <div class="acc-sub">90 variables · 1 mode (Baseline)</div>
+      </div>
+      <span class="tag tag-ok"><i class="ti ti-check"></i> Looks good</span>
+    </div>
+    <div class="acc-body">
+      <div class="group-label">Type scales</div>
+      <div class="chip-group">
+        <span class="chip chip-ok">Display Large</span><span class="chip chip-ok">Display Medium</span><span class="chip chip-ok">Display Small</span><span class="chip chip-ok">Headline Large</span><span class="chip chip-ok">Headline Medium</span><span class="chip chip-ok">Headline Small</span><span class="chip chip-ok">Title Large</span><span class="chip chip-ok">Title Medium</span><span class="chip chip-ok">Title Small</span><span class="chip chip-ok">Body Large</span><span class="chip chip-ok">Body Medium</span><span class="chip chip-ok">Body Small</span><span class="chip chip-ok">Label Large</span><span class="chip chip-ok">Label Medium</span><span class="chip chip-ok">Label Small</span>
+      </div>
+      <div class="group-label">Sub-properties per scale</div>
+      <div class="chip-group">
+        <span class="chip">Font</span><span class="chip">Weight</span><span class="chip">Weight-emphasized</span><span class="chip">Size</span><span class="chip">Line Height</span><span class="chip">Tracking</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="acc">
+    <div class="acc-head" onclick="tog(this)">
+      <i class="ti ti-chevron-right chev" aria-hidden="true"></i>
+      <div class="acc-title">
+        <div class="acc-name">Shape</div>
+        <div class="acc-sub">10 variables · 1 mode (Baseline)</div>
+      </div>
+      <span class="tag tag-ok"><i class="ti ti-check"></i> Looks good</span>
+    </div>
+    <div class="acc-body">
+      <div class="chip-group">
+        <span class="chip chip-ok">Corner/None</span><span class="chip chip-ok">Corner/Extra-small</span><span class="chip chip-ok">Corner/Small</span><span class="chip chip-ok">Corner/Medium</span><span class="chip chip-ok">Corner/Large</span><span class="chip chip-ok">Corner/Large-increased</span><span class="chip chip-ok">Corner/Extra-large</span><span class="chip chip-ok">Corner/Extra-large-increased</span><span class="chip chip-ok">Corner/Extra-extra-large</span><span class="chip chip-ok">Corner/Full</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="acc">
+    <div class="acc-head" onclick="tog(this)">
+      <i class="ti ti-chevron-right chev" aria-hidden="true"></i>
+      <div class="acc-title">
+        <div class="acc-name">Spacing tokens</div>
+        <div class="acc-sub">No collection found in file</div>
+      </div>
+      <span class="tag tag-fail"><i class="ti ti-x"></i> Missing</span>
+    </div>
+    <div class="acc-body">
+      <div class="item-list">
+        <div class="item-row"><div class="dot dot-fail"></div>No spacing variable collection. M3 defines spacing in external documentation — designers must reference material.io. Cannot be applied via Figma token picker.</div>
+        <div class="item-row"><div class="dot dot-fail"></div>No effect/shadow variable collection. Elevation values also live outside the file.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Naming -->
+  <p class="sec-label">Naming convention — 17/20</p>
+
+  <div class="acc">
+    <div class="acc-head" onclick="tog(this)">
+      <i class="ti ti-chevron-right chev" aria-hidden="true"></i>
+      <div class="acc-title">
+        <div class="acc-name">Slash-based hierarchy</div>
+        <div class="acc-sub">Consistent across all 4 collections</div>
+      </div>
+      <span class="tag tag-warn"><i class="ti ti-alert-triangle"></i> 1 issue</span>
+    </div>
+    <div class="acc-body">
+      <div class="group-label">Convention used</div>
+      <div class="chip-group" style="margin-bottom:.75rem">
+        <span class="chip chip-ok">Schemes/Primary</span><span class="chip chip-ok">State Layers/Primary/Opacity-08</span><span class="chip chip-ok">Corner/Extra-large</span><span class="chip chip-ok">Static/Display Large/Font</span>
+      </div>
+      <div class="item-list">
+        <div class="item-row"><div class="dot dot-ok"></div>Hierarchy is readable from name alone — category/role/sub-property pattern throughout</div>
+        <div class="item-row"><div class="dot dot-ok"></div>No mixing of conventions across collections</div>
+        <div class="item-row"><div class="dot dot-warn"></div>Typo found: "Button - outline" component set has state value <strong>"Presssed"</strong> (triple s) instead of "Pressed" — breaks code mapping on state names</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modes -->
+  <p class="sec-label">Mode support — 20/20</p>
+
+  <div class="acc">
+    <div class="acc-head" onclick="tog(this)">
+      <i class="ti ti-chevron-right chev" aria-hidden="true"></i>
+      <div class="acc-title">
+        <div class="acc-name">32 modes — best in class</div>
+        <div class="acc-sub">Light · Dark · Contrast variants · 12 dynamic colour themes (LT + DT)</div>
+      </div>
+      <span class="tag tag-ok"><i class="ti ti-check"></i> Looks good</span>
+    </div>
+    <div class="acc-body">
+      <div class="chip-group">
+        <span class="chip chip-ok">Light</span><span class="chip chip-ok">Dark</span><span class="chip chip-ok">Light High Contrast</span><span class="chip chip-ok">Light Medium Contrast</span><span class="chip chip-ok">Dark High Contrast</span><span class="chip chip-ok">Dark Medium Contrast</span><span class="chip chip-ok">Monochrome LT</span><span class="chip chip-ok">Monochrome DT</span><span class="chip chip-ok">Pink LT/DT</span><span class="chip chip-ok">Rose LT/DT</span><span class="chip chip-ok">Red LT/DT</span><span class="chip chip-ok">Orange LT/DT</span><span class="chip chip-ok">Yellow LT/DT</span><span class="chip chip-ok">Chartreuse LT/DT</span><span class="chip chip-ok">Green LT/DT</span><span class="chip chip-ok">Teal LT/DT</span><span class="chip chip-ok">Cyan LT/DT</span><span class="chip chip-ok">Blue LT/DT</span><span class="chip chip-ok">Indigo LT/DT</span><span class="chip chip-ok">Purple LT/DT</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Components -->
+  <p class="sec-label">Component coverage — 20/20</p>
+
+  <div class="acc">
+    <div class="acc-head" onclick="tog(this)">
+      <i class="ti ti-chevron-right chev" aria-hidden="true"></i>
+      <div class="acc-title">
+        <div class="acc-name">25 component pages</div>
+        <div class="acc-sub">38 component sets · 3,018 components on Buttons page alone</div>
+      </div>
+      <span class="tag tag-ok"><i class="ti ti-check"></i> Looks good</span>
+    </div>
+    <div class="acc-body">
+      <div class="group-label">All component pages</div>
+      <div class="chip-group" style="margin-bottom:.75rem">
+        <span class="chip chip-ok">App bars</span><span class="chip chip-ok">Avatars</span><span class="chip chip-ok">Badges</span><span class="chip chip-ok">Buttons</span><span class="chip chip-ok">Cards</span><span class="chip chip-ok">Carousel</span><span class="chip chip-ok">Checkboxes</span><span class="chip chip-ok">Chips</span><span class="chip chip-ok">Date &amp; time pickers</span><span class="chip chip-ok">Dialogs</span><span class="chip chip-ok">Dividers</span><span class="chip chip-ok">Lists</span><span class="chip chip-ok">Loading &amp; progress</span><span class="chip chip-ok">Menu</span><span class="chip chip-ok">Navigation</span><span class="chip chip-ok">Radio button</span><span class="chip chip-ok">Search</span><span class="chip chip-ok">Sheets</span><span class="chip chip-ok">Sliders</span><span class="chip chip-ok">Snackbar</span><span class="chip chip-ok">Switch</span><span class="chip chip-ok">Tabs</span><span class="chip chip-ok">Text fields</span><span class="chip chip-ok">Toolbars</span><span class="chip chip-ok">Tooltips</span>
+      </div>
+      <div class="group-label">Button variant depth</div>
+      <div class="chip-group">
+        <span class="chip">Type: Round · Square</span><span class="chip">Size: XSmall · Small · Medium · Large · XLarge</span><span class="chip">State: Enabled · Hovered · Focused · Pressed · Disabled</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Documentation -->
+  <p class="sec-label">Documentation — 7/10</p>
+
+  <div class="acc">
+    <div class="acc-head" onclick="tog(this)">
+      <i class="ti ti-chevron-right chev" aria-hidden="true"></i>
+      <div class="acc-title">
+        <div class="acc-name">Partially documented</div>
+        <div class="acc-sub">Examples page present · component descriptions empty</div>
+      </div>
+      <span class="tag tag-warn"><i class="ti ti-alert-triangle"></i> Needs work</span>
+    </div>
+    <div class="acc-body">
+      <div class="item-list">
+        <div class="item-row"><div class="dot dot-ok"></div>Dedicated Examples page with full-screen mockups</div>
+        <div class="item-row"><div class="dot dot-ok"></div>Component pages sectioned clearly: Baseline, FAB, Icon button, Split button, Button groups</div>
+        <div class="item-row"><div class="dot dot-fail"></div>All sampled component description fields are empty in Figma</div>
+        <div class="item-row"><div class="dot dot-fail"></div>Dos/don'ts documentation lives on material.io — not embedded in the file</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verdict -->
+  <p class="sec-label">Verdict</p>
+  <div class="verdict-box">
+    <div class="vt">Production-ready — not fully self-contained.</div>
+    <div class="vp">Mode coverage and component depth are best-in-class. Nothing public comes close to 32 modes and 25 dedicated component pages. The gaps — spacing, effects, descriptions — are intentional architectural choices in M3's design: those layers live outside the Figma file in Google's external spec. Teams adopting M3 as a base need to add those two collections to make the file standalone.</div>
+    <div class="gap-list">
+      <div class="gap-r"><div class="gn">1</div>Add a spacing variable collection (4px base scale recommended)</div>
+      <div class="gap-r"><div class="gn">2</div>Add elevation/shadow tokens as an effects variable collection</div>
+      <div class="gap-r"><div class="gn">3</div>Fix "Presssed" typo in Button - outline component set state values</div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>Read: May 2026</span>
+    <span>·</span>
+    <span>Figma Plugin API</span>
+    <span>·</span>
+    <span>File open in Figma desktop</span>
+    <span>·</span>
+    <span>Rubric v1.0</span>
+  </div>
+
+</div>
+
+<script>
+  function tog(head) {
+    const chev = head.querySelector('.chev');
+    const body = head.nextElementSibling;
+    const open = body.classList.toggle('open');
+    chev.classList.toggle('open', open);
+  }
+</script>
+</body>
+</html>

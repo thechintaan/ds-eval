@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DS Health Check</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #ffffff;
+      --bg-secondary: #f7f7f5;
+      --bg-tertiary: #f0efeb;
+      --text-primary: #1a1a1a;
+      --text-secondary: #6b6b6b;
+      --text-tertiary: #9a9a9a;
+      --border: rgba(0,0,0,0.1);
+      --radius-md: 8px;
+      --radius-lg: 12px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1a1a1a; --bg-secondary: #252525; --bg-tertiary: #2e2e2e;
+        --text-primary: #f0f0ee; --text-secondary: #9a9a9a; --text-tertiary: #666;
+        --border: rgba(255,255,255,0.1);
+      }
+    }
+
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg-tertiary); color: var(--text-primary); min-height: 100vh; padding: 2rem 1rem; }
+    .page { max-width: 760px; margin: 0 auto; }
+
+    .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: var(--radius-md); border: 0.5px solid var(--border); color: var(--text-secondary); background: var(--bg-secondary); margin-right: 5px; margin-bottom: 8px; }
+    .badge-pattern { background: #E6F1FB; color: #185FA5; border-color: #B5D4F4; }
+
+    .score-row { display: flex; align-items: center; gap: 1.5rem; padding: 1.25rem 1.5rem; background: var(--bg); border-radius: var(--radius-lg); border: 0.5px solid var(--border); margin-bottom: 1.5rem; }
+    .snum { font-size: 44px; font-weight: 500; line-height: 1; }
+    .sbar { height: 6px; background: var(--bg-secondary); border-radius: 3px; border: 0.5px solid var(--border); overflow: hidden; margin: 6px 0; }
+    .sbar-fill { height: 100%; background: #185FA5; border-radius: 3px; }
+    .smeta { font-size: 12px; color: var(--text-secondary); }
+
+    .sec-label { font-size: 11px; font-weight: 500; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: .06em; margin: 1.5rem 0 .5rem; }
+
+    .acc { border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: .5rem; background: var(--bg); }
+    .acc-head { display: flex; align-items: center; gap: 10px; padding: .875rem 1rem; cursor: pointer; user-select: none; transition: background .15s; }
+    .acc-head:hover { background: var(--bg-secondary); }
+    .chev { font-size: 14px; color: var(--text-tertiary); transition: transform .2s; flex-shrink: 0; }
+    .chev.open { transform: rotate(90deg); }
+    .acc-title { flex: 1; }
+    .acc-name { font-size: 14px; font-weight: 500; }
+    .acc-sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+    .acc-body { display: none; border-top: 0.5px solid var(--border); padding: .875rem 1rem; }
+    .acc-body.open { display: block; }
+
+    .tag { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 3px 8px; border-radius: var(--radius-md); border: 0.5px solid; white-space: nowrap; }
+    .tag-ok   { background: #EAF3DE; color: #3B6D11; border-color: #C0DD97; }
+    .tag-warn { background: #FAEEDA; color: #854F0B; border-color: #FAC775; }
+    .tag-fail { background: #FCEBEB; color: #A32D2D; border-color: #F7C1C1; }
+
+    .group-label { font-size: 11px; font-weight: 500; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: .05em; margin: .75rem 0 .35rem; }
+    .group-label:first-child { margin-top: 0; }
+
+    .chip-group { display: flex; flex-wrap: wrap; gap: 5px; }
+    .chip { font-size: 11px; padding: 2px 8px; border-radius: var(--radius-md); background: var(--bg-secondary); border: 0.5px solid var(--border); color: var(--text-secondary); }
+    .chip-ok   { background: #EAF3DE; border-color: #C0DD97; color: #3B6D11; }
+    .chip-warn { background: #FAEEDA; border-color: #FAC775; color: #854F0B; }
+    .chip-fail { background: #FCEBEB; border-color: #F7C1C1; color: #A32D2D; }
+    .chip-dim  { opacity: .55; }
+
+    .item-list { display: flex; flex-direction: column; gap: 4px; }
+    .item-row  { display: flex; align-items: flex-start; gap: 7px; font-size: 12px; color: var(--text-secondary); padding: 2px 0; line-height: 1.5; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+    .dot-ok   { background: #639922; }
+    .dot-warn { background: #BA7517; }
+    .dot-fail { background: #A32D2D; }
+
+    .verdict-box { background: var(--bg); border-radius: var(--radius-lg); border: 0.5px solid var(--border); padding: 1.25rem 1.5rem; }
+    .vt { font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+    .vp { font-size: 13px; color: var(--text-secondary); line-height: 1.65; }
+    .gap-list { margin-top: .875rem; display: flex; flex-direction: column; gap: 7px; }
+    .gap-r { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--text-secondary); }
+    .gn { width: 18px; height: 18px; border-radius: 50%; background: #FAECE7; color: #993C1D; font-size: 10px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+
+    .foot { font-size: 11px; color: var(--text-tertiary); margin-top: 2rem; display: flex; gap: .75rem; padding-bottom: 2rem; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+<div class="page" id="root"></div>
+
+<script>
+/* ─────────────────────────────────────────────
+   DATA — swap this object for each DS evaluated
+   ───────────────────────────────────────────── */
+const DS = {
+  name: "Material Design 3",
+  source: "Google · Material 3 Design Kit",
+  readDate: "May 2026",
+  pattern: "A — role-based",
+  type: "Community",
+  score: 89,
+  maturity: "Production-ready",
+  summary: "4 collections · 304 variables · 32 modes · 25 component pages",
+
+  dimensions: [
+    { label: "Token architecture", score: 25, max: 30 },
+    { label: "Naming convention",  score: 17, max: 20 },
+    { label: "Mode support",       score: 20, max: 20 },
+    { label: "Component coverage", score: 20, max: 20 },
+    { label: "Documentation",      score: 7,  max: 10 }
+  ],
+
+  sections: [
+    {
+      group: "Token architecture — 25/30",
+      items: [
+        {
+          name: "M3 — colour & state layers",
+          sub: "197 variables · 32 modes",
+          status: "ok",
+          body: [
+            {
+              label: "Colour schemes (49)",
+              chips: [
+                {label:"Schemes/Primary",s:"ok"},{label:"Schemes/On Primary",s:"ok"},{label:"Schemes/Primary Container",s:"ok"},{label:"Schemes/On Primary Container",s:"ok"},{label:"Schemes/Secondary",s:"ok"},{label:"Schemes/On Secondary",s:"ok"},{label:"Schemes/Secondary Container",s:"ok"},{label:"Schemes/On Secondary Container",s:"ok"},{label:"Schemes/Tertiary",s:"ok"},{label:"Schemes/On Tertiary",s:"ok"},{label:"Schemes/Tertiary Container",s:"ok"},{label:"Schemes/On Tertiary Container",s:"ok"},{label:"Schemes/Error",s:"ok"},{label:"Schemes/On Error",s:"ok"},{label:"Schemes/Error Container",s:"ok"},{label:"Schemes/On Error Container",s:"ok"},{label:"Schemes/Background",s:"ok"},{label:"Schemes/On Background",s:"ok"},{label:"Schemes/Surface",s:"ok"},{label:"Schemes/On Surface",s:"ok"},{label:"Schemes/Surface Variant",s:"ok"},{label:"Schemes/On Surface Variant",s:"ok"},{label:"Schemes/Outline",s:"ok"},{label:"Schemes/Outline Variant",s:"ok"},{label:"Schemes/Surface Tint",s:"ok"},{label:"Schemes/Shadow",s:"ok"},{label:"Schemes/Scrim",s:"ok"},{label:"Schemes/Inverse Surface",s:"ok"},{label:"Schemes/Inverse On Surface",s:"ok"},{label:"Schemes/Inverse Primary",s:"ok"},{label:"Schemes/Surface Dim",s:"ok"},{label:"Schemes/Surface Bright",s:"ok"},{label:"Schemes/Surface Container Lowest",s:"ok"},{label:"Schemes/Surface Container Low",s:"ok"},{label:"Schemes/Surface Container",s:"ok"},{label:"Schemes/Surface Container High",s:"ok"},{label:"Schemes/Surface Container Highest",s:"ok"}
+              ]
+            },
+            {
+              label: "State layers (148) — pattern",
+              chips: [
+                {label:"State Layers/Primary/Opacity-08"},{label:"State Layers/Primary/Opacity-10"},{label:"State Layers/Primary/Opacity-16"},{label:"State Layers/On Primary/Opacity-08"},{label:"State Layers/Surface/Opacity-08"},{label:"State Layers/Error/Opacity-08"},{label:"State Layers/Outline/Opacity-08"},{label:"+ 141 more at same pattern",s:"dim"}
+              ]
+            },
+            {
+              label: "Modes (32)",
+              chips: [
+                {label:"Light",s:"ok"},{label:"Dark",s:"ok"},{label:"Light High Contrast",s:"ok"},{label:"Light Medium Contrast",s:"ok"},{label:"Dark High Contrast",s:"ok"},{label:"Dark Medium Contrast",s:"ok"},{label:"Monochrome LT/DT",s:"ok"},{label:"Pink LT/DT",s:"ok"},{label:"Rose LT/DT",s:"ok"},{label:"Red LT/DT",s:"ok"},{label:"Orange LT/DT",s:"ok"},{label:"Yellow LT/DT",s:"ok"},{label:"Chartreuse LT/DT",s:"ok"},{label:"Green LT/DT",s:"ok"},{label:"Teal LT/DT",s:"ok"},{label:"Cyan LT/DT",s:"ok"},{label:"Blue LT/DT",s:"ok"},{label:"Indigo LT/DT",s:"ok"},{label:"Purple LT/DT",s:"ok"}
+              ]
+            }
+          ]
+        },
+        {
+          name: "Typescale",
+          sub: "90 variables · 1 mode (Baseline)",
+          status: "ok",
+          body: [
+            { label: "Type scales", chips: [{label:"Display Large",s:"ok"},{label:"Display Medium",s:"ok"},{label:"Display Small",s:"ok"},{label:"Headline Large",s:"ok"},{label:"Headline Medium",s:"ok"},{label:"Headline Small",s:"ok"},{label:"Title Large",s:"ok"},{label:"Title Medium",s:"ok"},{label:"Title Small",s:"ok"},{label:"Body Large",s:"ok"},{label:"Body Medium",s:"ok"},{label:"Body Small",s:"ok"},{label:"Label Large",s:"ok"},{label:"Label Medium",s:"ok"},{label:"Label Small",s:"ok"}] },
+            { label: "Sub-properties per scale", chips: [{label:"Font"},{label:"Weight"},{label:"Weight-emphasized"},{label:"Size"},{label:"Line Height"},{label:"Tracking"}] }
+          ]
+        },
+        {
+          name: "Shape",
+          sub: "10 variables · 1 mode (Baseline)",
+          status: "ok",
+          body: [
+            { label: "Corner tokens", chips: [{label:"Corner/None",s:"ok"},{label:"Corner/Extra-small",s:"ok"},{label:"Corner/Small",s:"ok"},{label:"Corner/Medium",s:"ok"},{label:"Corner/Large",s:"ok"},{label:"Corner/Large-increased",s:"ok"},{label:"Corner/Extra-large",s:"ok"},{label:"Corner/Extra-large-increased",s:"ok"},{label:"Corner/Extra-extra-large",s:"ok"},{label:"Corner/Full",s:"ok"}] }
+          ]
+        },
+        {
+          name: "Spacing tokens",
+          sub: "No collection found in file",
+          status: "fail",
+          body: [
+            { rows: [
+              {s:"fail", text:"No spacing variable collection. M3 defines spacing in external documentation only — cannot be applied via Figma token picker."},
+              {s:"fail", text:"No effect/shadow variable collection. Elevation values also live outside the file."}
+            ]}
+          ]
+        }
+      ]
+    },
+    {
+      group: "Naming convention — 17/20",
+      items: [
+        {
+          name: "Slash-based hierarchy",
+          sub: "Consistent across all 4 collections",
+          status: "warn",
+          statusLabel: "1 issue",
+          body: [
+            { label: "Convention used", chips: [{label:"Schemes/Primary",s:"ok"},{label:"State Layers/Primary/Opacity-08",s:"ok"},{label:"Corner/Extra-large",s:"ok"},{label:"Static/Display Large/Font",s:"ok"}] },
+            { rows: [
+              {s:"ok",   text:"Hierarchy readable from name alone — category/role/sub-property throughout"},
+              {s:"ok",   text:"No mixing of conventions across collections"},
+              {s:"warn", text:'Typo: "Button - outline" has state value <strong>"Presssed"</strong> (triple s) — breaks code mapping on state names'}
+            ]}
+          ]
+        }
+      ]
+    },
+    {
+      group: "Mode support — 20/20",
+      items: [
+        {
+          name: "32 modes — best in class",
+          sub: "Light · Dark · Contrast variants · 12 dynamic colour themes",
+          status: "ok",
+          body: [
+            { chips: [{label:"Light",s:"ok"},{label:"Dark",s:"ok"},{label:"Light High Contrast",s:"ok"},{label:"Light Medium Contrast",s:"ok"},{label:"Dark High Contrast",s:"ok"},{label:"Dark Medium Contrast",s:"ok"},{label:"Monochrome LT/DT",s:"ok"},{label:"Pink LT/DT",s:"ok"},{label:"Rose LT/DT",s:"ok"},{label:"Red LT/DT",s:"ok"},{label:"Orange LT/DT",s:"ok"},{label:"Yellow LT/DT",s:"ok"},{label:"Chartreuse LT/DT",s:"ok"},{label:"Green LT/DT",s:"ok"},{label:"Teal LT/DT",s:"ok"},{label:"Cyan LT/DT",s:"ok"},{label:"Blue LT/DT",s:"ok"},{label:"Indigo LT/DT",s:"ok"},{label:"Purple LT/DT",s:"ok"}] }
+          ]
+        }
+      ]
+    },
+    {
+      group: "Component coverage — 20/20",
+      items: [
+        {
+          name: "25 component pages",
+          sub: "38 component sets · 3,018 components on Buttons page alone",
+          status: "ok",
+          body: [
+            { label: "All component pages", chips: [{label:"App bars",s:"ok"},{label:"Avatars",s:"ok"},{label:"Badges",s:"ok"},{label:"Buttons",s:"ok"},{label:"Cards",s:"ok"},{label:"Carousel",s:"ok"},{label:"Checkboxes",s:"ok"},{label:"Chips",s:"ok"},{label:"Date & time pickers",s:"ok"},{label:"Dialogs",s:"ok"},{label:"Dividers",s:"ok"},{label:"Lists",s:"ok"},{label:"Loading & progress",s:"ok"},{label:"Menu",s:"ok"},{label:"Navigation",s:"ok"},{label:"Radio button",s:"ok"},{label:"Search",s:"ok"},{label:"Sheets",s:"ok"},{label:"Sliders",s:"ok"},{label:"Snackbar",s:"ok"},{label:"Switch",s:"ok"},{label:"Tabs",s:"ok"},{label:"Text fields",s:"ok"},{label:"Toolbars",s:"ok"},{label:"Tooltips",s:"ok"}] },
+            { label: "Button variant depth", chips: [{label:"Type: Round · Square"},{label:"Size: XSmall · Small · Medium · Large · XLarge"},{label:"State: Enabled · Hovered · Focused · Pressed · Disabled"}] }
+          ]
+        }
+      ]
+    },
+    {
+      group: "Documentation — 7/10",
+      items: [
+        {
+          name: "Partially documented",
+          sub: "Examples page present · component descriptions empty",
+          status: "warn",
+          body: [
+            { rows: [
+              {s:"ok",   text:"Dedicated Examples page with full-screen mockups"},
+              {s:"ok",   text:"Component pages sectioned clearly: Baseline, FAB, Icon button, Split button, Button groups"},
+              {s:"fail", text:"All sampled component description fields are empty in Figma"},
+              {s:"fail", text:"Dos/don'ts documentation lives on material.io — not embedded in the file"}
+            ]}
+          ]
+        }
+      ]
+    }
+  ],
+
+  verdict: {
+    title: "Production-ready — not fully self-contained.",
+    body: "Mode coverage and component depth are best-in-class. Nothing public comes close to 32 modes and 25 dedicated component pages. The gaps — spacing, effects, descriptions — are intentional architectural choices: those layers live in Google's external spec. Teams adopting M3 as a base need to add those collections to make the file standalone.",
+    gaps: [
+      "Add a spacing variable collection (4px base scale recommended)",
+      "Add elevation/shadow tokens as an effects variable collection",
+      'Fix "Presssed" typo in Button - outline component set state values'
+    ]
+  }
+};
+
+/* ─────────────────────────────────────────────
+   RENDERER — never needs to change
+   ───────────────────────────────────────────── */
+const statusTag = {
+  ok:   `<span class="tag tag-ok"><i class="ti ti-check"></i> Looks good</span>`,
+  warn: (label) => `<span class="tag tag-warn"><i class="ti ti-alert-triangle"></i> ${label || 'Needs work'}</span>`,
+  fail: `<span class="tag tag-fail"><i class="ti ti-x"></i> Missing</span>`
+};
+
+function chipHTML(c) {
+  const cls = c.s === 'ok' ? 'chip-ok' : c.s === 'warn' ? 'chip-warn' : c.s === 'fail' ? 'chip-fail' : c.s === 'dim' ? 'chip chip-dim' : '';
+  return `<span class="chip ${cls}">${c.label}</span>`;
+}
+
+function rowHTML(r) {
+  const dot = r.s === 'ok' ? 'dot-ok' : r.s === 'warn' ? 'dot-warn' : 'dot-fail';
+  return `<div class="item-row"><div class="dot ${dot}"></div><span>${r.text}</span></div>`;
+}
+
+function bodyBlockHTML(b) {
+  let out = '';
+  if (b.label) out += `<div class="group-label">${b.label}</div>`;
+  if (b.chips) out += `<div class="chip-group">${b.chips.map(chipHTML).join('')}</div>`;
+  if (b.rows)  out += `<div class="item-list">${b.rows.map(rowHTML).join('')}</div>`;
+  return out;
+}
+
+function accHTML(item) {
+  const tag = item.status === 'ok'   ? statusTag.ok
+            : item.status === 'fail' ? statusTag.fail
+            : statusTag.warn(item.statusLabel);
+  return `
+    <div class="acc">
+      <div class="acc-head" onclick="tog(this)">
+        <i class="ti ti-chevron-right chev" aria-hidden="true"></i>
+        <div class="acc-title">
+          <div class="acc-name">${item.name}</div>
+          <div class="acc-sub">${item.sub}</div>
+        </div>
+        ${tag}
+      </div>
+      <div class="acc-body">${item.body.map(bodyBlockHTML).join('')}</div>
+    </div>`;
+}
+
+function render() {
+  const pct = Math.round((DS.score / 100) * 100);
+  let html = `
+    <div style="margin-bottom:1.5rem">
+      <div style="margin-bottom:6px">
+        <span class="badge badge-pattern">Pattern ${DS.pattern}</span>
+        <span class="badge">${DS.type}</span>
+      </div>
+      <p style="font-size:22px;font-weight:500">${DS.name}</p>
+      <p style="font-size:13px;color:var(--text-secondary);margin-top:4px">${DS.source} · Read ${DS.readDate}</p>
+    </div>
+
+    <div class="score-row">
+      <div>
+        <div class="snum">${DS.score}</div>
+        <div class="smeta" style="margin-top:4px">out of 100</div>
+      </div>
+      <div style="flex:1">
+        <p style="font-size:14px;font-weight:500">${DS.maturity}</p>
+        <div class="sbar"><div class="sbar-fill" style="width:${pct}%"></div></div>
+        <p class="smeta">${DS.summary}</p>
+      </div>
+    </div>`;
+
+  DS.sections.forEach(sec => {
+    html += `<p class="sec-label">${sec.group}</p>`;
+    sec.items.forEach(item => { html += accHTML(item); });
+  });
+
+  html += `
+    <p class="sec-label">Verdict</p>
+    <div class="verdict-box">
+      <div class="vt">${DS.verdict.title}</div>
+      <div class="vp">${DS.verdict.body}</div>
+      <div class="gap-list">
+        ${DS.verdict.gaps.map((g,i) => `<div class="gap-r"><div class="gn">${i+1}</div>${g}</div>`).join('')}
+      </div>
+    </div>
+    <div class="foot">
+      <span>Read: ${DS.readDate}</span><span>·</span>
+      <span>Figma Plugin API</span><span>·</span>
+      <span>Rubric v1.0</span>
+    </div>`;
+
+  document.getElementById('root').innerHTML = html;
+}
+
+function tog(head) {
+  const chev = head.querySelector('.chev');
+  const body = head.nextElementSibling;
+  const open = body.classList.toggle('open');
+  chev.classList.toggle('open', open);
+}
+
+render();
+</script>
+</body>
+</html>

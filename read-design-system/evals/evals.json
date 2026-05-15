@@ -1,0 +1,45 @@
+{
+  "skill_name": "read-design-system",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I've just opened the Material Design 3 file in Figma desktop. Here's the URL: https://www.figma.com/design/H1bb0rssG2pS0YT8WClh1b/Material-3-Design-Kit--Community-?node-id=49823-12141. Can you read this design system and tell me how strong it is? I want to present the findings to my team.",
+      "expected_output": "HTML health check report for M3. Should detect Pattern A, score approximately 89/100, identify the 32 modes as a strength, flag missing spacing tokens and empty descriptions as gaps. Report saved to workspace.",
+      "assertions": [
+        "Pattern A (role-based/semantic-first) is correctly identified",
+        "Score is in the 85-93 range",
+        "32 color modes are identified and called out as a strength",
+        "Missing spacing tokens flagged as a gap",
+        "HTML report is saved to the workspace folder",
+        "Verdict summary is 2-3 sentences, not a bullet list"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "We're thinking of building on top of Untitled UI PRO for our product. I've got the variables file open in Figma. URL: https://www.figma.com/design/t2n01kTThZmDVbkdAKdFQt. Can you run a health check and tell me if it's a solid foundation?",
+      "expected_output": "HTML health check for Untitled UI PRO VARIABLES. Should detect Pattern B three-tier, score 70-80/100, highlight the three-tier token architecture and Button depth as strengths, flag Light+Dark only modes and empty descriptions as gaps. Include caveat that this may be a partial file.",
+      "assertions": [
+        "Pattern B (primitive + semantic) or three-tier variant is identified",
+        "Score is in the 65-82 range",
+        "Three-tier token architecture is called out (primitives → semantic → component-specific)",
+        "Button variant depth is mentioned as a strength",
+        "Light+Dark only mode support is flagged (no brand themes)",
+        "HTML report saved to workspace"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "My team built a design system in Figma last year and I want to know how it compares to industry standards. The Figma file is open. URL is https://www.figma.com/design/AvTcftYkbE63sCi62H4yEU/Polaris-UI-Kit. Give me an honest assessment — no softening.",
+      "expected_output": "HTML health check for Polaris UI Kit. Should detect Pattern E (component-level tokens), score 30-40/100, flag scopes:[] as critical failure, flag no dark mode, flag community kit ≠ real DS. Verdict should be direct and honest — not suitable as a token foundation.",
+      "assertions": [
+        "Pattern E (component-level token system) is correctly identified",
+        "Score is in the 30-42 range",
+        "scopes: [] issue is flagged as critical (tokens invisible in pickers)",
+        "Single mode / no dark mode support is flagged",
+        "Community kit caveat is included (not the real Polaris token system)",
+        "Verdict is direct — recommends against using as a DS foundation",
+        "HTML report saved to workspace"
+      ]
+    }
+  ]
+}
